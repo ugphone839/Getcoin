@@ -3,37 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌟 Nhận Coin Đã Hoàn Thành</title>
+    <title>⚡ Hệ thống Get Coin Bot Discord</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* CSS cho nút nhận coin */
-        #claimButton {
-            background-color: #ffc107; /* Vàng */
-            color: #333;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-            box-shadow: 0 4px #e0a800;
-        }
-        #claimButton:hover {
-            background-color: #e0a800;
-        }
-        #claimButton:disabled {
-            background-color: #6c757d;
-            box-shadow: none;
-            cursor: not-allowed;
+        .info-box {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #007bff;
+            background-color: #e9f7ff;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>✅ Hoàn Thành! Chuẩn bị nhận Coin</h1>
-        <p class="description" id="message">Nhấn nút bên dưới để xác nhận và nhận Coin vào tài khoản Discord của bạn.</p>
-        
+        <h1>Chào mừng đến với hệ thống Get Coin</h1>
+        <p class="description">Để nhận được liên kết kiếm Coin cá nhân, vui lòng sử dụng lệnh Slash Command <code>/getcoin</code> trên máy chủ Discord của chúng tôi.</p>
+        <div class="info-box">
+            <p>Liên kết được tạo sẽ chuyển hướng bạn đến trang **Claim** này sau khi hoàn tất nhiệm vụ.</p>
+            <p>🚀 **Hệ thống chạy trên nền tảng Vercel.**</p>
+        </div>
+    </div>
+</body>
+</html>
         <button id="claimButton" onclick="claimCoin()">🔥 Nhận Coin Ngay</button>
         
         <div id="statusContainer" class="link-box hidden">
