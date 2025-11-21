@@ -3,103 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Get Coin Miễn Phí ⚡</title>
+    <title>🌟 Nhận Coin Đã Hoàn Thành</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* CSS cho nút nhận coin */
+        #claimButton {
+            background-color: #ffc107; /* Vàng */
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            box-shadow: 0 4px #e0a800;
+        }
+        #claimButton:hover {
+            background-color: #e0a800;
+        }
+        #claimButton:disabled {
+            background-color: #6c757d;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>💰 Kiếm Coin Ngay!</h1>
-        <p class="description">Click vào nút bên dưới để tạo Link Get Coin.</p>
+        <h1>✅ Hoàn Thành! Chuẩn bị nhận Coin</h1>
+        <p class="description" id="message">Nhấn nút bên dưới để xác nhận và nhận Coin vào tài khoản Discord của bạn.</p>
         
-        <button id="generateButton" onclick="generateLink()">Tạo Link Get Coin</button>
+        <button id="claimButton" onclick="claimCoin()">🔥 Nhận Coin Ngay</button>
         
-        <div id="linkContainer" class="link-box hidden">
-            <p>Link của bạn đã sẵn sàng:</p>
-            <a id="shortenedLink" href="#" target="_blank"></a>
-            <button id="copyButton" onclick="copyLink()">Sao Chép</button>
-            <p class="warning">⚠️ Sau khi hoàn thành, Coin sẽ được cộng vào tài khoản Discord của bạn!</p>
+        <div id="statusContainer" class="link-box hidden">
+            <p id="statusText" class="success-message"></p>
         </div>
-
-        <p id="message" class="error-message"></p>
     </div>
 
     <script>
-        // Cấu hình API của dịch vụ rút gọn link (SỬ DỤNG API TỪ YEUMONEY HOẶC TƯƠNG TỰ)
-        const SHORTENER_API_URL = "https://yeumoney.com/api/"; 
-        const SHORTENER_TOKEN = "YOUR_YEUMONEY_TOKEN_HERE"; // THAY THẾ BẰNG TOKEN CỦA BẠN
-        const TARGET_URL = "https://zyo.lol/DS_Zeus"; // URL đích mà BOT của bạn sẽ trả Coin khi người dùng truy cập thành công
+        // Lấy Key từ URL (ví dụ: /claim.html?key=abc-123)
+        const urlParams = new URLSearchParams(window.location.search);
+        const userKey = urlParams.get('key');
 
-        const generateButton = document.getElementById('generateButton');
-        const linkContainer = document.getElementById('linkContainer');
-        const shortenedLink = document.getElementById('shortenedLink');
+        const API_SERVER_URL = "https://your-bot-ip-or-domain.com"; // THAY THẾ BẰNG IP CÔNG CỘNG/DOMAIN CÓ PORT CỦA SERVER BOT
+        const API_ENDPOINT = `${API_SERVER_URL}:${8080}/api/claim_coin`; // Cần mở Port 8080 trên server Bot
+
+        const claimButton = document.getElementById('claimButton');
+        const statusContainer = document.getElementById('statusContainer');
+        const statusText = document.getElementById('statusText');
         const messageDisplay = document.getElementById('message');
 
-        function showMessage(msg, isError = false) {
-            messageDisplay.textContent = msg;
-            messageDisplay.className = isError ? 'error-message' : 'success-message';
+        if (!userKey) {
+            messageDisplay.textContent = "⚠️ Lỗi: Không tìm thấy Key Coin. Vui lòng thử lại từ Bot Discord.";
+            claimButton.disabled = true;
         }
 
-        async function generateLink() {
-            generateButton.disabled = true;
-            showMessage('Đang tạo link, vui lòng chờ...');
-            linkContainer.classList.add('hidden');
+        async function claimCoin() {
+            if (!userKey || claimButton.disabled) return;
 
-            // THAY ĐỔI CÁC THAM SỐ NÀY TÙY THEO DỊCH VỤ RÚT GỌN LINK BẠN DÙNG (VÍ DỤ NÀY DÙNG CÚ PHÁP CỦA YEUMONEY)
-            const apiUrl = `${SHORTENER_API_URL}?api=${SHORTENER_TOKEN}&url=${encodeURIComponent(TARGET_URL)}`;
+            claimButton.disabled = true;
+            messageDisplay.textContent = 'Đang gửi yêu cầu xác nhận...';
+            statusContainer.classList.add('hidden');
+
+            const fullApiUrl = `${API_ENDPOINT}?key=${userKey}`;
 
             try {
-                const response = await fetch(apiUrl);
+                const response = await fetch(fullApiUrl);
                 const data = await response.json();
                 
+                statusContainer.classList.remove('hidden');
+                
                 if (data.status === 'success') {
-                    const shortUrl = data.shortenedUrl;
-                    
-                    shortenedLink.href = shortUrl;
-                    shortenedLink.textContent = shortUrl;
-                    linkContainer.classList.remove('hidden');
-                    showMessage('Đã tạo link thành công! Nhấp để kiếm Coin.', false);
+                    statusText.textContent = data.message + " Coin sẽ được cộng vào Discord của bạn.";
+                    statusText.className = 'success-message';
+                    messageDisplay.textContent = 'Thành công! Kiểm tra tin nhắn riêng tư trên Discord.';
                 } else {
-                    showMessage(`Lỗi từ API: ${data.message || 'Không thể rút gọn link.'}`, true);
+                    statusText.textContent = `Thất bại: ${data.message}`;
+                    statusText.className = 'error-message';
+                    messageDisplay.textContent = 'Yêu cầu không thành công. Key đã dùng hoặc không hợp lệ.';
                 }
             } catch (error) {
-                console.error("Lỗi:", error);
-                showMessage('Lỗi kết nối hoặc xử lý API. Vui lòng kiểm tra lại cấu hình API.', true);
-            } finally {
-                generateButton.disabled = false;
+                console.error("Lỗi kết nối:", error);
+                statusContainer.classList.remove('hidden');
+                statusText.textContent = 'Lỗi kết nối đến máy chủ Bot. Vui lòng báo cho Admin.';
+                statusText.className = 'error-message';
             }
-        }
-
-        function copyLink() {
-            const link = shortenedLink.href;
-            if (navigator.clipboard && window.isSecureContext) {
-                // Dùng Clipboard API hiện đại
-                navigator.clipboard.writeText(link).then(() => {
-                    showMessage('Đã sao chép link!', false);
-                }).catch(() => {
-                    // Fallback nếu không thành công
-                    fallbackCopyTextToClipboard(link);
-                });
-            } else {
-                // Fallback cho môi trường không an toàn (non-HTTPS) hoặc trình duyệt cũ
-                fallbackCopyTextToClipboard(link);
-            }
-        }
-
-        function fallbackCopyTextToClipboard(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed"; // Đảm bảo nó không cuộn
-            textArea.style.opacity = 0; // Ẩn nó đi
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showMessage('Đã sao chép link bằng cách dự phòng!', false);
-            } catch (err) {
-                showMessage('Không thể sao chép tự động. Vui lòng sao chép thủ công.', true);
-            }
-            document.body.removeChild(textArea);
         }
     </script>
 </body>
