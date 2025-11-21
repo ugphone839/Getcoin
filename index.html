@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Get Coin Miễn Phí ⚡</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Kiếm Coin Ngay!</h1>
+        <p class="description">Click vào nút bên dưới để tạo Link Get Coin.</p>
+        
+        <button id="generateButton" onclick="generateLink()">Tạo Link Get Coin</button>
+        
+        <div id="linkContainer" class="link-box hidden">
+            <p>Link của bạn đã sẵn sàng:</p>
+            <a id="shortenedLink" href="#" target="_blank"></a>
+            <button id="copyButton" onclick="copyLink()">Sao Chép</button>
+            <p class="warning">⚠️ Sau khi hoàn thành, Coin sẽ được cộng vào tài khoản Discord của bạn!</p>
+        </div>
+
+        <p id="message" class="error-message"></p>
+    </div>
+
+    <script>
+        // Cấu hình API của dịch vụ rút gọn link (SỬ DỤNG API TỪ YEUMONEY HOẶC TƯƠNG TỰ)
+        const SHORTENER_API_URL = "https://yeumoney.com/api/"; 
+        const SHORTENER_TOKEN = "YOUR_YEUMONEY_TOKEN_HERE"; // THAY THẾ BẰNG TOKEN CỦA BẠN
+        const TARGET_URL = "https://zyo.lol/DS_Zeus"; // URL đích mà BOT của bạn sẽ trả Coin khi người dùng truy cập thành công
+
+        const generateButton = document.getElementById('generateButton');
+        const linkContainer = document.getElementById('linkContainer');
+        const shortenedLink = document.getElementById('shortenedLink');
+        const messageDisplay = document.getElementById('message');
+
+        function showMessage(msg, isError = false) {
+            messageDisplay.textContent = msg;
+            messageDisplay.className = isError ? 'error-message' : 'success-message';
+        }
+
+        async function generateLink() {
+            generateButton.disabled = true;
+            showMessage('Đang tạo link, vui lòng chờ...');
+            linkContainer.classList.add('hidden');
+
+            // THAY ĐỔI CÁC THAM SỐ NÀY TÙY THEO DỊCH VỤ RÚT GỌN LINK BẠN DÙNG (VÍ DỤ NÀY DÙNG CÚ PHÁP CỦA YEUMONEY)
+            const apiUrl = `${SHORTENER_API_URL}?api=${SHORTENER_TOKEN}&url=${encodeURIComponent(TARGET_URL)}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const shortUrl = data.shortenedUrl;
+                    
+                    shortenedLink.href = shortUrl;
+                    shortenedLink.textContent = shortUrl;
+                    linkContainer.classList.remove('hidden');
+                    showMessage('Đã tạo link thành công! Nhấp để kiếm Coin.', false);
+                } else {
+                    showMessage(`Lỗi từ API: ${data.message || 'Không thể rút gọn link.'}`, true);
+                }
+            } catch (error) {
+                console.error("Lỗi:", error);
+                showMessage('Lỗi kết nối hoặc xử lý API. Vui lòng kiểm tra lại cấu hình API.', true);
+            } finally {
+                generateButton.disabled = false;
+            }
+        }
+
+        function copyLink() {
+            const link = shortenedLink.href;
+            if (navigator.clipboard && window.isSecureContext) {
+                // Dùng Clipboard API hiện đại
+                navigator.clipboard.writeText(link).then(() => {
+                    showMessage('Đã sao chép link!', false);
+                }).catch(() => {
+                    // Fallback nếu không thành công
+                    fallbackCopyTextToClipboard(link);
+                });
+            } else {
+                // Fallback cho môi trường không an toàn (non-HTTPS) hoặc trình duyệt cũ
+                fallbackCopyTextToClipboard(link);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed"; // Đảm bảo nó không cuộn
+            textArea.style.opacity = 0; // Ẩn nó đi
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showMessage('Đã sao chép link bằng cách dự phòng!', false);
+            } catch (err) {
+                showMessage('Không thể sao chép tự động. Vui lòng sao chép thủ công.', true);
+            }
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>
