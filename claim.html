@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhận Coin Thưởng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #2c2f33; 
+            color: #ffffff;
+            text-align: center;
+        }
+        .container {
+            background-color: #36393f; 
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            color: #7289da;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        #message-box {
+            min-height: 50px;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        #claim-button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background-color: #2ecc71;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #claim-button:hover:not(:disabled) {
+            background-color: #27ae60;
+        }
+        #claim-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none; 
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XÁC NHẬN NHẬN COIN THƯỞNG</h1>
+        <div id="message-box">
+            <p>Nhấn vào nút **"Nhận Coin"** để hoàn tất và nhận Coin vào tài khoản Discord của bạn.</p>
+        </div>
+        <button id="claim-button">
+            <span class="spinner"></span>
+            <span>Nhận Coin</span>
+        </button>
+    </div>
+
+    <script>
+        // ✅ ĐÃ ĐIỀN TỪ INPUT CỦA BẠN: 87.106.105.24:9161
+        const API_SERVER_URL = "http://87.106.105.24"; 
+        const API_PORT = 9161; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const key = params.get('key');
+            const claimButton = document.getElementById('claim-button');
+            const messageBox = document.getElementById('message-box');
+            const spinner = document.querySelector('.spinner');
+
+            if (!key) {
+                messageBox.innerHTML = '<p class="error">❌ Lỗi: Thiếu khóa xác nhận (Key). Vui lòng chạy lại lệnh `/getcoin` trên Discord.</p>';
+                claimButton.disabled = true;
+                return;
+            }
+            
+            async function claimCoin() {
+                claimButton.disabled = true;
+                spinner.style.display = 'inline-block';
+                messageBox.innerHTML = '<p>Đang xử lý yêu cầu...</p>';
+
+                const apiUrl = `${API_SERVER_URL}:${API_PORT}/api/claim_coin?key=${encodeURIComponent(key)}`;
+
+                try {
+                    // Chú ý: Vì API được gọi từ một domain khác (Vercel) đến Bot API, Bot cần cấu hình CORS.
+                    // (Đã được cấu hình trong hàm start_web_server của bott.py)
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        messageBox.innerHTML = `<p class="success">✅ **Thành công!** ${data.message} Kiểm tra Coin trong Discord của bạn.</p>`;
+                    } else {
+                        messageBox.innerHTML = `<p class="error">❌ **Lỗi:** ${data.message}</p>`;
+                        
+                        // Cho phép thử lại nếu lỗi không phải là do Key đã dùng
+                        if (!data.message.includes("đã được sử dụng")) {
+                            claimButton.disabled = false; 
+                        }
+                    }
+                } catch (error) {
+                    messageBox.innerHTML = `<p class="error">❌ Lỗi kết nối API. Vui lòng đảm bảo Bot đang chạy và Địa chỉ IP/Domain đã chính xác.</p>`;
+                    claimButton.disabled = false;
+                    console.error('Lỗi khi gọi API:', error);
+                } finally {
+                    spinner.style.display = 'none';
+                }
+            }
+
+            claimButton.addEventListener('click', claimCoin);
+        });
+    </script>
+</body>
+</html>
