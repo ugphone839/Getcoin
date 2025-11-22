@@ -11,21 +11,22 @@
             padding: 15px 30px;
             font-size: 1.2em;
             color: white;
-            background-color: #007bff;
+            background-color: #28a745;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-top: 20px;
         }
-        #claim-button:hover:not(:disabled) { background-color: #0056b3; }
+        #claim-button:hover:not(:disabled) { background-color: #1e7e34; }
         #claim-button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        #message { margin-top: 20px; font-weight: bold; }
+        #message { margin-top: 20px; font-weight: bold; min-height: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>🎉 Bạn đã hoàn thành nhiệm vụ!</h2>
-        <p>Nhấn vào nút bên dưới để nhận Coin VIP của bạn.</p>
+        <h2>🎉 Sẵn sàng Nhận Coin VIP!</h2>
+        <p id="info-text">Nhấn vào nút bên dưới để xác nhận và nhận Coin VIP.</p>
         <button id="claim-button">🎁 NHẬN COIN VIP 🎁</button>
         <div id="message"></div>
     </div>
@@ -34,39 +35,45 @@
         document.addEventListener('DOMContentLoaded', () => {
             const button = document.getElementById('claim-button');
             const messageDiv = document.getElementById('message');
+            const infoText = document.getElementById('info-text');
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Lấy token và userId từ URL
             const token = urlParams.get('token');
-            const userId = urlParams.get('userId'); // Giả sử dịch vụ rút gọn link cũng có thể gửi userId
+            const userId = urlParams.get('userId'); 
             
-            // Kiểm tra xem token có tồn tại không
-            if (!token) {
-                messageDiv.textContent = "❌ Lỗi: Không tìm thấy Mã Thông Báo (Token). Vui lòng vượt link lại.";
+            if (!token || !userId) {
+                messageDiv.textContent = "❌ Lỗi: Không tìm thấy Mã Thông Báo hoặc User ID.";
                 button.disabled = true;
+                infoText.style.display = 'none';
                 return;
             }
 
+            infoText.innerHTML = `Bạn đã hoàn thành nhiệm vụ. Nhấn nút để cộng Coin vào tài khoản Discord ID: <b>${userId}</b>.`;
+
             button.onclick = async () => {
                 button.disabled = true;
-                messageDiv.textContent = "Đang xử lý...";
+                messageDiv.textContent = "Đang xử lý... Vui lòng chờ.";
 
-                // Gọi Serverless Function /api/get_coin (sẽ được Vercel tự động nhận diện)
+                // Gọi Serverless Function /api/get_coin, truyền token và userId
                 try {
                     const response = await fetch(`/api/get_coin?token=${token}&userId=${userId}`, {
-                        method: 'GET' // Sử dụng GET vì các tham số đã ở trong URL
+                        method: 'GET' 
                     });
                     
                     const data = await response.json();
 
                     if (data.success) {
                         messageDiv.style.color = 'green';
-                        messageDiv.innerHTML = `✅ **Thành công!** ${data.message}`;
-                        // Tùy chọn: Chặn người dùng nhấn lại sau khi thành công
+                        messageDiv.innerHTML = `✅ **Thành công!** ${data.message} (Kiểm tra DM Discord của bạn).`;
+                        button.style.display = 'none'; 
                     } else {
                         messageDiv.style.color = 'red';
                         messageDiv.innerHTML = `❌ **Thất bại:** ${data.message}`;
-                        button.disabled = false; // Cho phép thử lại nếu không phải lỗi Token đã dùng
+                        if (response.status === 403) { 
+                            button.style.display = 'none';
+                        } else {
+                            button.disabled = false; 
+                        }
                     }
                 } catch (error) {
                     messageDiv.style.color = 'red';
