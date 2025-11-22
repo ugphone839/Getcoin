@@ -84,8 +84,8 @@
     </div>
 
     <script>
-        // ✅ ĐỊA CHỈ IP/PORT CÔNG KHAI CỦA BOT SERVER (Dựa trên ảnh bạn cung cấp)
-        const API_SERVER_URL = "http://14.248.91.139"; 
+        // ✅ ĐÃ CẬP NHẬT: ĐỊA CHỈ IP CÔNG KHAI MỚI CỦA BOT SERVER 
+        const API_SERVER_URL = "http://87.106.105.24"; 
         const API_PORT = 9161; 
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -118,7 +118,7 @@
                         messageBox.innerHTML = `<p class="error">❌ **Lỗi:** ${data.message}</p>`;
                         
                         // Cho phép thử lại nếu lỗi không phải là do Key đã dùng
-                        if (!data.message.includes("đã được sử dụng")) {
+                        if (!data.message.includes("đã được sử dụng") && !data.message.includes("đã quá hạn")) {
                             claimButton.disabled = false; 
                         }
                     }
