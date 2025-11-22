@@ -3,37 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Hệ thống Get Coin Bot Discord</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Nhận Coin Thưởng</title>
     <style>
-        .info-box {
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; }
+        .container { background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); max-width: 400px; margin: auto; }
+        h1 { color: #333; }
+        #claim-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
             margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #007bff;
-            background-color: #e9f7ff;
-            border-radius: 8px;
-            text-align: left;
-            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        #claim-btn:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Chào mừng đến với hệ thống Get Coin</h1>
-        <p class="description">Để nhận được liên kết kiếm Coin cá nhân, vui lòng sử dụng lệnh Slash Command <code>/getcoin</code> trên máy chủ Discord của chúng tôi.</p>
-        <div class="info-box">
-            <p>Liên kết được tạo sẽ chuyển hướng bạn đến trang **Claim** này sau khi hoàn tất nhiệm vụ.</p>
-            <p>🚀 **Hệ thống chạy trên nền tảng Vercel.**</p>
-        </div>
+        <h1>Xác nhận Hoàn thành Link</h1>
+        <p>Chúc mừng bạn đã hoàn thành bước rút gọn link!</p>
+        <p id="key-display">Mã xác nhận: Đang tải...</p>
+        <button id="claim-btn" disabled>NHẬN COIN NGAY</button>
+        <div id="message"></div>
     </div>
+
+    <script>
+        // *** QUAN TRỌNG: THAY ĐỔI URL NÀY VỚI IP CÔNG CỘNG/DOMAIN VÀ PORT CỦA BOT CỦA BẠN ***
+        // Ví dụ: https://your-public-bot-ip-or-domain:5000/api/claim
+        const BOT_CLAIM_API = "http://YOUR_BOT_PUBLIC_IP:5000/api/claim"; 
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const key = urlParams.get('key');
+            
+            const keyDisplay = document.getElementById('key-display');
+            const claimBtn = document.getElementById('claim-btn');
+            const messageDiv = document.getElementById('message');
+
+            if (key) {
+                keyDisplay.textContent = `Mã xác nhận: ${key}`;
+                claimBtn.onclick = () => claimCoin(key);
+                claimBtn.disabled = false;
+            } else {
+                keyDisplay.textContent = "Lỗi: Không tìm thấy mã xác nhận (key).";
+                claimBtn.textContent = "LỖI";
+                messageDiv.textContent = "Vui lòng vượt link rút gọn để nhận mã.";
+                messageDiv.style.color = 'red';
+            }
+        });
+
+        async function claimCoin(key) {
+            const claimBtn = document.getElementById('claim-btn');
+            const messageDiv = document.getElementById('message');
+            
+            claimBtn.disabled = true;
+            claimBtn.textContent = 'Đang Xử Lý...';
+            messageDiv.textContent = 'Đang gửi yêu cầu đến bot...';
+            messageDiv.style.color = 'orange';
+
+            try {
+                const response = await fetch(BOT_CLAIM_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ key: key }), // Gửi key cho bot
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success') {
+                    messageDiv.textContent = `✅ Thành công! Bạn đã nhận được ${data.amount} Coin!`;
+                    messageDiv.style.color = 'green';
+                    claimBtn.textContent = 'ĐÃ NHẬN COIN';
+                } else {
+                    messageDiv.textContent = `❌ Lỗi: ${data.message || 'Không thể xác nhận yêu cầu.'}`;
+                    messageDiv.style.color = 'red';
+                    claimBtn.textContent = 'THỬ LẠI';
+                    // Chỉ cho phép thử lại nếu không phải lỗi "đã dùng"
+                    if (data.status !== 'error' || !data.message.includes('đã được sử dụng')) {
+                         claimBtn.disabled = false;
+                    }
+                }
+            } catch (error) {
+                messageDiv.textContent = `❌ Lỗi kết nối: Không thể gửi yêu cầu đến bot. Vui lòng thử lại sau.`;
+                messageDiv.style.color = 'red';
+                claimBtn.textContent = 'THỬ LẠI';
+                claimBtn.disabled = false;
+                console.error('Fetch error:', error);
+            }
+        }
+    </script>
 </body>
 </html>
-        <button id="claimButton" onclick="claimCoin()">🔥 Nhận Coin Ngay</button>
-        
-        <div id="statusContainer" class="link-box hidden">
-            <p id="statusText" class="success-message"></p>
-        </div>
-    </div>
 
     <script>
         // Lấy Key từ URL (ví dụ: /claim.html?key=abc-123)
