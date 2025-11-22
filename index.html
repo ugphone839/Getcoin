@@ -8,6 +8,7 @@
         body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; }
         .container { background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); max-width: 400px; margin: auto; }
         h1 { color: #333; }
+        p { color: #555; }
         #claim-btn {
             background-color: #007bff;
             color: white;
@@ -38,9 +39,8 @@
     </div>
 
     <script>
-        // *** QUAN TRỌNG: THAY ĐỔI URL NÀY VỚI IP CÔNG CỘNG/DOMAIN VÀ PORT CỦA BOT CỦA BẠN ***
-        // Ví dụ: https://your-public-bot-ip-or-domain:5000/api/claim
-        const BOT_CLAIM_API = "http://YOUR_BOT_PUBLIC_IP:5000/api/claim"; 
+        // *** ĐỊA CHỈ API CÔNG CỘNG CỦA BOT ĐÃ ĐƯỢC CẬP NHẬT ***
+        const BOT_CLAIM_API = "http://87.106.105.24:9161/api/claim"; 
         
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -90,6 +90,7 @@
                     messageDiv.textContent = `❌ Lỗi: ${data.message || 'Không thể xác nhận yêu cầu.'}`;
                     messageDiv.style.color = 'red';
                     claimBtn.textContent = 'THỬ LẠI';
+                    
                     // Chỉ cho phép thử lại nếu không phải lỗi "đã dùng"
                     if (data.status !== 'error' || !data.message.includes('đã được sử dụng')) {
                          claimBtn.disabled = false;
@@ -101,59 +102,6 @@
                 claimBtn.textContent = 'THỬ LẠI';
                 claimBtn.disabled = false;
                 console.error('Fetch error:', error);
-            }
-        }
-    </script>
-</body>
-</html>
-
-    <script>
-        // Lấy Key từ URL (ví dụ: /claim.html?key=abc-123)
-        const urlParams = new URLSearchParams(window.location.search);
-        const userKey = urlParams.get('key');
-
-        const API_SERVER_URL = "https://your-bot-ip-or-domain.com"; // THAY THẾ BẰNG IP CÔNG CỘNG/DOMAIN CÓ PORT CỦA SERVER BOT
-        const API_ENDPOINT = `${API_SERVER_URL}:${8080}/api/claim_coin`; // Cần mở Port 8080 trên server Bot
-
-        const claimButton = document.getElementById('claimButton');
-        const statusContainer = document.getElementById('statusContainer');
-        const statusText = document.getElementById('statusText');
-        const messageDisplay = document.getElementById('message');
-
-        if (!userKey) {
-            messageDisplay.textContent = "⚠️ Lỗi: Không tìm thấy Key Coin. Vui lòng thử lại từ Bot Discord.";
-            claimButton.disabled = true;
-        }
-
-        async function claimCoin() {
-            if (!userKey || claimButton.disabled) return;
-
-            claimButton.disabled = true;
-            messageDisplay.textContent = 'Đang gửi yêu cầu xác nhận...';
-            statusContainer.classList.add('hidden');
-
-            const fullApiUrl = `${API_ENDPOINT}?key=${userKey}`;
-
-            try {
-                const response = await fetch(fullApiUrl);
-                const data = await response.json();
-                
-                statusContainer.classList.remove('hidden');
-                
-                if (data.status === 'success') {
-                    statusText.textContent = data.message + " Coin sẽ được cộng vào Discord của bạn.";
-                    statusText.className = 'success-message';
-                    messageDisplay.textContent = 'Thành công! Kiểm tra tin nhắn riêng tư trên Discord.';
-                } else {
-                    statusText.textContent = `Thất bại: ${data.message}`;
-                    statusText.className = 'error-message';
-                    messageDisplay.textContent = 'Yêu cầu không thành công. Key đã dùng hoặc không hợp lệ.';
-                }
-            } catch (error) {
-                console.error("Lỗi kết nối:", error);
-                statusContainer.classList.remove('hidden');
-                statusText.textContent = 'Lỗi kết nối đến máy chủ Bot. Vui lòng báo cho Admin.';
-                statusText.className = 'error-message';
             }
         }
     </script>
